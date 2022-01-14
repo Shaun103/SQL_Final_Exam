@@ -397,9 +397,3 @@ FROM Orders
 SELECT Category, dbo.fCategory_Price(category) AS CategorPrice
 FROM Part
  
-/***************************************************************************************************/
-
-
-
-
-
