@@ -1,0 +1,405 @@
+/* Creation of the tables  */
+
+/* Holds the State fees information - on the one side */
+CREATE TABLE StateFees (
+	ACTIVE BIT NOT NULL,
+	StateFeesID INT IDENTITY(1,1) NOT NULL,
+	StateName NVARCHAR(20) NOT NULL,
+	StateTax FLOAT NOT NULL,
+	ShippingCharge MONEY NULL
+	CONSTRAINT StudentID_PK PRIMARY KEY(StateFeesID)
+);
+
+CREATE TABLE Customer (
+	ACTIVE BIT NOT NULL,
+	CustomerID INT IDENTITY(1,1) NOT NULL,
+	StateFeesID INT NOT NULL, 
+	FirstName NVARCHAR(50) NOT NULL,
+	LastName NVARCHAR(50) NOT NULL,
+	StreetAddress NVARCHAR(50) NOT NULL,
+	City NVARCHAR(50) NOT NULL,
+	ZipCode INT NOT NULL,
+	CONSTRAINT CustomerID_PK PRIMARY KEY(CustomerID),
+
+);
+/*StateFeesID,FirstName,LastName,StreetAddress,City,ZipCode*/
+
+/* Information about product - on the one side */
+CREATE TABLE Part (
+	ACTIVE BIT NOT NULL,
+	ItemID INT IDENTITY(1,1) NOT NULL, 
+	DescriptionTag NVARCHAR(200) NOT NULL,
+	Category NVARCHAR(50) NOT NULL,
+	Quantity INT NOT NULL,
+	UnitPrice MONEY NOT NULL,
+	CONSTRAINT Inventory_PK PRIMARY KEY(ItemID)
+);
+
+/*ACTIVE,DescriptionTag,Category,Quantity,UnitPrice*/
+
+/* Information about an order - on the many side  */
+CREATE TABLE Orders (
+	OrderID INT IDENTITY(1,1) NOT NULL,
+	CustomerID INT NOT NULL, 
+	OrderDate DATE NOT NULL,
+	CreditCardNumber INT NOT NULL,
+	ShippingType VARCHAR(50) NOT NULL
+	CONSTRAINT OrderID_PK PRIMARY KEY(OrderID)
+);
+/* CustomerID,OrderMonth,OrderDay,OrderYear,CreditCardNumber,ShippingType*/
+
+/* Order Information - on the many side */
+CREATE TABLE OrderDetail (
+	OrderID INT NOT NULL,
+	LineNumber INT NOT NULL,
+	ItemID INT NOT NULL,
+	Quantity INT NOT NULL,
+	CONSTRAINT OrderDetail_PK PRIMARY KEY(OrderID, LineNumber)
+);
+
+
+/* Information about phones - fixes multi-column problem */ 
+CREATE TABLE PhoneType (
+	PhoneTypeID INT IDENTITY(1,1) NOT NULL,
+	PhoneType NVARCHAR(20) NOT NULL,
+	PhoneNumber VARCHAR(50) NOT NULL
+	CONSTRAINT PhoneTypeID_PK PRIMARY KEY(PhoneTypeID)
+);
+
+
+/* Holds supplier information - on the one side */
+CREATE TABLE Supplier (
+	Active BIT NOT NULL,
+	SupplierID INT IDENTITY(1,1) NOT NULL,
+	PhoneTypeID INT NOT NULL,
+	SupplierName VARCHAR(50) NOT NULL,
+	SupplierState VARCHAR(10) NOT NULL,
+	SupplierAddress VARCHAR(100) NOT NULL,
+	SupplierCity VARCHAR(20) NOT NULL,
+	SupplierZIPCODE INT NOT NULL
+	CONSTRAINT SupplierID_PK PRIMARY KEY(SupplierID)
+	CONSTRAINT PhoneTypeID2_FK FOREIGN KEY (SupplierID) REFERENCES PhoneType(PhoneTypeID)
+		ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
+
+/* Fixes the many to many Supplier/Inventory problem */
+CREATE TABLE Sup_Invi_Intersection (
+	ItemID INT NOT NULL,
+	SupplierID INT NOT NULL
+	CONSTRAINT Sup_InviID_PK PRIMARY KEY(ItemID, SupplierID)
+	CONSTRAINT ItemIDID_FK FOREIGN KEY (ItemID) REFERENCES Part(ItemID)
+		ON DELETE NO ACTION ON UPDATE NO ACTION,
+	CONSTRAINT SupplierID2_FK FOREIGN KEY (SupplierID) REFERENCES Supplier(SupplierID)
+		ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
+
+
+
+
+
+/***********************************************************************************/
+
+INSERT INTO StateFees
+(ACTIVE, StateName, StateTax,ShippingCharge)
+VALUES
+(1,'AL', 0.0, 6.00),
+(1,'AK', 0.0, 8.00),
+(1,'AZ', 0.0, 6.00),
+(1,'AR', 0.0, 6.00),
+(1,'CA', 8.25, 6.00),
+(1,'HI', 0.0, 8.00),
+(1,'TX', 6.25, 4.00),
+(1,'LA', 0.0, 4.00),
+(1,'MN', 0.0, 6.00),
+(1,'NM', 0.0, 4.00),
+(1,'NC', 0.0, 6.00),
+(1,'NY', 0.0, 6.00),
+(1,'OK', 0.0, 4.00)
+
+
+INSERT INTO Customer
+(ACTIVE,StateFeesID,FirstName,LastName,StreetAddress,City,ZipCode)
+VALUES
+(1, 1, 'Peter', 'Parker', '10 Ingram Street', 'Burmingham', 10017),--1
+(1, 2, 'Ash', 'Ketchum', '546565 DriveWay Rd', 'Nowhere Ville', 67554),--2
+(1, 3, 'Tony', 'Stark', '10880 Walker Point', 'Los Angeles', 90265),--3
+(1, 4, 'Stephen', 'Strange', '177A Bleecker Street', 'New York City', 10012),--3
+(1, 5, 'Frank', 'Castle', '25 50th Avenue', 'Long Island City', 10502),--4
+(1, 6, 'John','Doe', 'Lost in the woods', 'Beach City', 189472 )--5
+
+
+INSERT INTO Orders
+(CustomerID,OrderDate,CreditCardNumber,ShippingType)
+VALUES
+(1,'12/10/2020', 1000,'FEDEX'),--1
+(1,'12/20/2020',1000,'FEDEX'),--2
+(2,'09/22/2020',100033,'USPS'),--3
+(2,'02/12/2020',10002,'UPS'),--4
+(2,'02/16/2020',10002,'UPS'),--5
+(3,'07/30/2020',100077,'USPS'),--6
+(3,'01/22/2020',1000332,'FEDEX'),--7
+(4,'02/1/2020',10002,'UPS'),--8
+(5, '03/19/2020',10000034, 'USPS'),--9
+(5, '08/10/2020',1000563, 'UPS'),--10
+(6, '04/05/2020',5723957, 'FEDEX')--11
+
+
+INSERT INTO Part
+(ACTIVE,DescriptionTag,Category,Quantity,UnitPrice)
+VALUES
+(1,'Razer Wx36438', 'Clear-Monitor', 19, 499.99),--1
+(1,'Asus CJ5678545', 'Gaming-Mouse', 10, 69.95),--2
+(1,'Google GH467549', 'Mesh-Router', 50, 79.99),--3
+(1,'EVGA YH54784', '1000w PowerSupply', 69, 58.99),--4
+(1,'Steel Series YU6789', 'Gaming-HeadSet', 23, 199.95),--5
+(1,'AMD Processor yui8473', '5900x CPU', 100, 399.98)--6
+
+
+INSERT INTO OrderDetail
+(OrderID,LineNumber,ItemID,Quantity)
+VALUES
+(1,1,1, 10),
+(2,2,2, 11),
+(3,3,2, 3),
+(4,4,4, 3),
+(5,5,5, 1),
+(6,2,2, 3),
+(7,5,3, 9),
+(8,3,4, 2), 
+(9,4,5, 1), 
+(10,4,3, 1),
+(11,3,6, 4)
+
+
+INSERT INTO PhoneType
+(PhoneType,PhoneNumber)
+VALUES
+('Buisness', '123-4567-6789'),
+('Executive', '456-1234-6789'),
+('Random', '456-7890-6789'),
+('Meeting', '678-9125-7829'),
+('House', '956-1789-2856')
+
+
+INSERT INTO Supplier
+(ACTVE,PhoneTypeID,SupplierName,SupplierState,SupplierAddress, SupplierCity, SupplierZIPCODE)
+VALUES
+(1,1,'Company A','TX','177 A Street','Company A CITY ',34267854),
+(1,2,'Company B','MI',' 189 B Street','Company B CITY ',5478569),
+(1,3,'Company C','CA','167 C Street','Company C CITY ',43672925),
+(1,4,'Company D','NC','781 D Street','Company D CITY ',8927585),
+(1,5,'Company E','FL','783 E Street','Company E CITY ',5478396)
+
+
+INSERT INTO Sup_Invi_Intersection
+(ItemID,SupplierID)
+VALUES
+(1,1),
+(2,2),
+(3,3),
+(4,4),
+(5,5)
+
+
+/***************************************************************************************************/
+
+/*
+First View 
+*/
+
+
+SELECT        dbo.Customer.FirstName, dbo.Customer.LastName, dbo.OrderDetail.LineNumber, dbo.OrderDetail.Quantity, dbo.Orders.OrderDate, dbo.Part.UnitPrice, dbo.Part.DescriptionTag, dbo.Part.ItemID
+FROM            dbo.Customer INNER JOIN
+                         dbo.Orders ON dbo.Customer.CustomerID = dbo.Orders.CustomerID INNER JOIN
+                         dbo.OrderDetail ON dbo.Orders.OrderID = dbo.OrderDetail.OrderID INNER JOIN
+                         dbo.Part ON dbo.OrderDetail.ItemID = dbo.Part.ItemID
+
+/***************************************************************************************************/
+
+/* 
+fCustomer_Search 
+*/
+
+CREATE FUNCTION fCustomer_Search
+(	
+	@CustomerID INT
+)
+RETURNS TABLE 
+AS
+RETURN 
+(
+SELECT        dbo.Customer.FirstName, dbo.Customer.LastName, dbo.OrderDetail.LineNumber, dbo.OrderDetail.Quantity, dbo.Orders.OrderDate, dbo.Part.UnitPrice, dbo.Part.DescriptionTag, dbo.Part.ItemID
+FROM            dbo.Customer INNER JOIN
+                         dbo.Orders ON dbo.Customer.CustomerID = dbo.Orders.CustomerID INNER JOIN
+                         dbo.OrderDetail ON dbo.Orders.OrderID = dbo.OrderDetail.OrderID INNER JOIN
+                         dbo.Part ON dbo.OrderDetail.ItemID = dbo.Part.ItemID
+						 WHERE Customer.CustomerID = @CustomerID
+)
+GO
+
+
+
+/***************************************************************************************************/
+
+CREATE FUNCTION fExtended_Price 
+( 
+	@OrderID INT,  
+	@LineNumber INT 
+) 
+RETURNS MONEY 
+AS  
+BEGIN 
+	DECLARE @answer MONEY 
+	SELECT  @answer = (OrderDetail.Quantity * [UnitPrice])  
+	FROM OrderDetail 
+	JOIN Part  
+	ON 
+	Part.ItemID = OrderDetail.ItemID 
+	WHERE OrderID = @OrderID  
+	AND  
+	LineNumber = @LineNumber 
+	RETURN @answer 
+END 
+GO 
+
+/***************************************************************************************************/
+
+/*
+ Executing the fExtended_Price query
+*/
+
+SELECT OrderID, LineNumber, dbo.fExtended_Price(OrderID, LineNumber) AS ExtendedPrice
+FROM OrderDetail
+
+
+/***************************************************************************************************/
+
+
+/* Price for a given order */
+
+CREATE FUNCTION fOrder_Price] 
+( 
+	@OrderID INT
+) 
+RETURNS MONEY 
+AS  
+BEGIN 
+	DECLARE @answer MONEY 
+	SELECT @answer = ((StateTax + UnitPrice) + StateFees.ShippingCharge)
+	FROM  dbo.OrderDetail 
+	INNER JOIN dbo.Part 
+	ON dbo.OrderDetail.ItemID = dbo.Part.ItemID 
+	CROSS JOIN dbo.StateFees
+	WHERE OrderDetail.OrderID = @OrderID
+	RETURN @answer
+END 
+
+
+/*
+Executing the query
+*/
+
+SELECT OrderID, dbo.fOrder_Price(OrderID) AS ExtendedPrice
+FROM OrderDetail
+
+
+/***************************************************************************************************/
+
+/*
+Sales by month 
+*/
+
+
+CREATE FUNCTION fMonth_Sales 
+(
+	@OrderMonth INT
+)
+RETURNS MONEY
+AS
+BEGIN
+	-- Declare the return variable here
+	DECLARE @ANSWER MONEY
+	SELECT @ANSWER = (dbo.OrderDetail.Quantity * dbo.Part.UnitPrice)
+	FROM dbo.OrderDetail 
+	INNER JOIN
+	dbo.Orders 
+	ON dbo.OrderDetail.OrderID = dbo.Orders.OrderID 
+	INNER JOIN dbo.Part 
+	ON dbo.OrderDetail.ItemID = dbo.Part.ItemID
+	WHERE MONTH(OrderDate) = @OrderMonth
+
+	-- Return the result of the function
+	RETURN @ANSWER
+
+END
+GO
+
+
+/*
+SELECT Month(OrderDate)AS Month, dbo.fMonth_Sales(Month(OrderDate)) AS PriceByMonth
+FROM Orders
+*/
+
+/***************************************************************************************************/
+
+CREATE FUNCTION fCategory_Price
+(
+	@Category NVARCHAR(100)
+)
+RETURNS MONEY
+AS
+BEGIN
+	DECLARE @ANSWER MONEY
+	SELECT @ANSWER = (OrderDetail.Quantity * [UnitPrice])
+	FROM OrderDetail 
+	JOIN Part  
+	ON 
+	Part.ItemID = OrderDetail.ItemID  
+	WHERE Category  = @Category 
+	RETURN @answer
+END
+GO
+
+/*
+Executing Category_Price
+*/
+
+/***************************************************************************************************/
+
+/*
+All code executions
+*/
+
+SELECT *
+FROM fCustomer_Search(3)
+
+SELECT Month(OrderDate)AS Month, dbo.fMonth_Sales(Month(OrderDate)) AS PriceByMonth
+FROM Orders
+
+SELECT *
+FROM fCustomer_Search(5)
+
+
+SELECT OrderID, LineNumber, dbo.fExtended_Price(OrderID, LineNumber) AS ExtendedPrice
+FROM OrderDetail
+
+
+SELECT OrderID, dbo.fOrder_Price(OrderID) AS ExtendedPrice
+FROM OrderDetail
+
+
+SELECT Month(OrderDate)AS Month, dbo.fMonth_Sales(Month(OrderDate)) AS PriceByMonth
+FROM Orders
+
+
+SELECT Category, dbo.fCategory_Price(category) AS CategorPrice
+FROM Part
+ 
+/***************************************************************************************************/
+
+
+
+
+
